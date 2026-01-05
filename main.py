@@ -1,31 +1,32 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from models import StockBase,StockCreate,StockRead,StockUpdate, OrderCreate,OrderRead
 import database_models
 from config import engine, SessionLocal
+from sqlalchemy.orm import Session
 
 api = FastAPI()
 database_models.Base.metadata.create_all(bind = engine)
 
 initial_stocks = [
-    StockBase(
+    StockUpdate(
         stock_name="Phone",
         stock_price=399.0,
         stock_quantity=50,
         is_active=True
     ),
-    StockBase(
+    StockUpdate(
         stock_name="Laptop",
         stock_price=999.0,
         stock_quantity=2,
         is_active=True
     ),
-    StockBase(
+    StockUpdate(
         stock_name="Pen",
         stock_price=5.0,
         stock_quantity=0,
         is_active=False
     ),
-    StockBase(
+    StockUpdate(
         stock_name="Table",
         stock_price=199.0,
         stock_quantity=10,
@@ -45,21 +46,36 @@ def init_db():
 
 init_db()
             
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+
+    finally:
+        db.close()
 
 
 
-#Stock
-# @api.get("/stocks")
-# def get_all_stocks():
-#     pass
+@api.get("/stocks", response_model = list[StockRead])
+def get_all_stocks(db: Session = Depends(get_db)):
+    stocks = db.query(database_models.Stock).all()
+    if stocks:
+        return stocks
+    else:
+        return {"error" : "Stock Not Found"}
+    
 
-# @api.get("/stocks/{id}")
-# def get_stock(id: int):
-#     pass
-
-# @api.post("/stocks")
-# def add_stock(order: Order):
-#     pass
+@api.get("/stocks/{id}", response_model = StockRead)
+def get_stock(id: int, db: Session = Depends(get_db)):
+    stock = db.query(database_models.Stock).filter(database_models.Stock.stock_id == id).first()
+    if stock:
+        return stock
+    
+@api.post("/stocks")
+def add_stock(stock: StockBase, db: Session = Depends(get_db)):
+    db.add(database_models.Stock(**stock.model_dump()))
+    db.commit()
+    return {'message' : 'Stock added successfully'}
 
 # @api.put("/stocks/{id}")
 # def update_stock(id: int, order: Order):
