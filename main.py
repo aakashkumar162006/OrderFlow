@@ -50,7 +50,6 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
-
     finally:
         db.close()
 
@@ -77,13 +76,33 @@ def add_stock(stock: StockBase, db: Session = Depends(get_db)):
     db.commit()
     return {'message' : 'Stock added successfully'}
 
-# @api.put("/stocks/{id}")
-# def update_stock(id: int, order: Order):
-#     pass
+@api.put("/stocks/{id}")
+def update_stock(id: int, stock: StockUpdate, db: Session = Depends(get_db)):
+    db_stock = db.query(database_models.Stock).filter(database_models.Stock.stock_id == id).first()
+    if db_stock:
+        updated_stock = stock.model_dump(exclude_unset=True)
+        for field, value in updated_stock.items():
+            setattr(db_stock, field, value)
+        db.commit()
+        return {'message' : 'Stock updated successfully'}
+    return {'error' : 'Stock not found'}
 
-# @api.patch("/stocks/{id}")
-# def change_stock_activity(id: int):
-#     pass
+@api.patch("/stocks/{id}/toggle-active")
+def toggle_stock_activity(id: int, db: Session = Depends(get_db)):
+    db_stock = db.query(database_models.Stock).filter(database_models.Stock.stock_id == id).first()
+    if db_stock:
+        db_stock.is_active = not db_stock.is_active
+        db.commit()
+        return {'message': f'Stock activity toggled to {db_stock.is_active}'}
+    return {'error': 'Stock not found'}
+
+@api.delete("/stocks/{id}")
+def delete_stock(id: int, db: Session = Depends(get_db)):
+    db_stock = db.query(database_models.Stock).filter(database_models.Stock.stock_id == id).first()
+    if db_stock:
+        db.delete(db_stock)
+        db.commit()
+        return {'message' : 'Stock removed successfully'}
 
 
 # #Order
