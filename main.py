@@ -25,12 +25,6 @@ initial_stocks = [
         stock_price=5.0,
         stock_quantity=0,
         is_active=False
-    ),
-    StockUpdate(
-        stock_name="Table",
-        stock_price=199.0,
-        stock_quantity=10,
-        is_active=True
     )
 ]
 
