@@ -30,7 +30,7 @@ class OrderRead(BaseModel):
     order_id: int
     stock_id: int
     quantity: int
-    status: str
+    status: bool
     created_at: datetime
 
     class Config:

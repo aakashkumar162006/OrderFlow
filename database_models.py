@@ -21,5 +21,5 @@ class Order(Base):
     order_id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     stock_id: Mapped[int] = mapped_column(Integer, ForeignKey("stocks.stock_id"), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
-    status: Mapped[str] = mapped_column(String, nullable=False)
+    status: Mapped[bool] = mapped_column(Boolean, server_default=true(), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
